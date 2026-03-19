@@ -86,7 +86,7 @@ function App() {
       fetchHistory();
     } catch (error) {
       console.error("Generate failed", error);
-      alert("Something went wrong");
+     alert("Gemini API error: Free tier quota exhausted. Please try again later.");
     } finally {
       setLoading(false);
     }
