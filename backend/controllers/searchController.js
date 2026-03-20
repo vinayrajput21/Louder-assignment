@@ -13,13 +13,17 @@ export const createSearch = async (req, res) => {
 
     const savedSearch = await Search.create({
       query,
-      proposal
+      proposal,
     });
 
     res.status(201).json(savedSearch);
   } catch (error) {
-    console.error("Create search error:", error.message);
-    res.status(500).json({ message: "Server error", error: error.message });
+    console.error("Create search error:", error);
+
+    res.status(500).json({
+      message: "Server error",
+      error: error.message,
+    });
   }
 };
 
@@ -28,7 +32,7 @@ export const getSearchHistory = async (req, res) => {
     const searches = await Search.find().sort({ createdAt: -1 });
     res.status(200).json(searches);
   } catch (error) {
-    console.error("Fetch history error:", error.message);
+    console.error("Fetch history error:", error);
     res.status(500).json({ message: "Server error" });
   }
 };

@@ -2,7 +2,7 @@ import dotenv from "dotenv";
 dotenv.config();
 
 import { GoogleGenAI } from "@google/genai";
-
+// console.log(process.env.GEMINI_API_KEY)
 const ai = new GoogleGenAI({
   apiKey: process.env.GEMINI_API_KEY,
 });
@@ -14,7 +14,7 @@ You are an AI Event Concierge.
 
 A user will describe a corporate offsite or event in natural language.
 
-Your job is to return ONLY valid JSON in this exact format:
+Return ONLY valid JSON in this exact format:
 {
   "venueName": "string",
   "location": "string",
@@ -24,7 +24,7 @@ Your job is to return ONLY valid JSON in this exact format:
 
 Rules:
 - Do not add markdown
-- Do not wrap in \`\`\`
+- Do not wrap in triple backticks
 - Do not add explanation before or after JSON
 - Keep estimatedCost human readable
 - whyItFits should be concise but useful
@@ -48,6 +48,9 @@ ${query}
     });
 
     const content = response?.text?.trim();
+    console.log(content);
+
+    console.log("Gemini raw response:", content);
 
     if (!content) {
       throw new Error("Empty response from Gemini");
@@ -58,13 +61,22 @@ ${query}
       .replace(/```/g, "")
       .trim();
 
-    try {
-      return JSON.parse(cleanedContent);
-    } catch (parseError) {
-      throw new Error(`Failed to parse Gemini response: ${cleanedContent}`);
-    }
+    return JSON.parse(cleanedContent);
   } catch (error) {
-    console.error("Gemini AI service error:", error.message);
-    throw new Error("Failed to generate venue proposal");
+    console.error("Gemini AI service error:", error);
+
+    if (error?.message?.toLowerCase().includes("quota")) {
+      throw new Error("Gemini API free tier quota exhausted. Please try again later.");
+    }
+
+    if (error?.message?.toLowerCase().includes("api key")) {
+      throw new Error("Gemini API key is invalid or missing.");
+    }
+
+    if (error?.message?.toLowerCase().includes("parse")) {
+      throw new Error("Gemini returned an invalid JSON response.");
+    }
+
+    throw new Error(error.message || "Failed to generate venue proposal");
   }
 };
